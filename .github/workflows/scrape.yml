@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # Needed to allow pushing changes
+  contents: write
 
 jobs:
   update-proxies:
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true  # Ensures the workflow can push changes
+          persist-credentials: true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,10 +31,19 @@ jobs:
         run: |
           python .scripts/update_proxies.py
 
-      - name: Configure Git
+      - name: Configure Git (alternate authors)
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          # Get the current minute
+          MINUTE=$(date +%M)
+          if [ $((10#$MINUTE % 2)) -eq 0 ]; then
+            # Even minute → commit as you
+            git config user.name "Ian-Lusule"
+            git config user.email "amlusule@gmail.com"
+          else
+            # Odd minute → commit as GitHub Actions bot
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+          fi
 
       - name: Commit and push if changes
         run: |
