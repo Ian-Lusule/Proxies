@@ -1,0 +1,38 @@
+name: Proxy Scraper
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update-proxies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r .scripts/requirements.txt
+
+      - name: Run script to update proxies
+        run: |
+          python .scripts/update_proxies.py
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          
+      - name: Commit and push if changes
+        run: |
+          git add proxies
+          git commit -m "feat(proxy): Update proxies list" || echo "No changes to commit"
+          git push
