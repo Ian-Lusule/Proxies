@@ -31,24 +31,26 @@ jobs:
         run: |
           python .scripts/update_proxies.py
 
-      - name: Configure Git (alternate authors)
+      - name: Configure Git (alternate authors + commit message)
+        id: gitconfig
         run: |
-          # Get the current minute
-          MINUTE=$(date +%M)
-          if [ $((10#$MINUTE % 2)) -eq 0 ]; then
-            # Even minute → commit as you
-            git config user.name "Ian-Lusule"
+          COUNT=$(git rev-list --count HEAD)
+          if [ $((COUNT % 2)) -eq 0 ]; then
+            # Even commit number → you
+            git config user.name "Ian Lusule"
             git config user.email "amlusule@gmail.com"
+            echo "msg=feat(proxy): Update proxies list (by Ian)" >> $GITHUB_OUTPUT
           else
-            # Odd minute → commit as GitHub Actions bot
+            # Odd commit number → GitHub Actions bot
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
+            echo "msg=feat(proxy): Auto-update proxies list (bot)" >> $GITHUB_OUTPUT
           fi
 
       - name: Commit and push if changes
         run: |
           git add proxies
           if ! git diff --cached --quiet; then
-            git commit -m "feat(proxy): Update proxies list"
+            git commit -m "${{ steps.gitconfig.outputs.msg }}"
             git push
           fi
