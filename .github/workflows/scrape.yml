@@ -2,12 +2,11 @@ name: Proxy Scraper
 
 on:
   schedule:
-    - cron: '*/30 * * * *' # Run every 6 hours
-   # cron: '*/30 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: write   # Needed to allow pushing changes
 
 jobs:
   update-proxies:
@@ -17,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true
+          persist-credentials: true  # Ensures the workflow can push changes
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -26,42 +25,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          if [ -f .scripts/requirements.txt ]; then
-            pip install -r .scripts/requirements.txt
-          else
-            echo "requirements.txt not found"
-            exit 1
-          fi
-
+          pip install -r .scripts/requirements.txt
       - name: Run script to update proxies
         run: |
-          python .scripts/update_proxies.py || { echo "Script failed"; exit 1; }
-
-      - name: Configure Git (alternate authors + commit message)
-        id: gitconfig
+          python .scripts/update_proxies.py
+      - name: Configure Git
         run: |
-          COUNT=$(git rev-list --count HEAD)
-          DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
-          if [ $? -ne 0 ]; then
-            echo "Failed to get commit count or date" >&2
-            exit 1
-          fi
-          if [ $((COUNT % 2)) -eq 0 ]; then
-            git config user.name "Ian Lusule"
-            git config user.email "amlusule@gmail.com"
-            echo "msg=feat(proxy): Update proxies list (by Ian) - $DATE" >> "$GITHUB_OUTPUT"
-          else
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
-            echo "msg=feat(proxy): Auto-update proxies list (bot) - $DATE" >> "$GITHUB_OUTPUT"
-          fi
-
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
       - name: Commit and push if changes
         run: |
           git add proxies
           if ! git diff --cached --quiet; then
-            git commit -m "${{ steps.gitconfig.outputs.msg }}"
-            git push || { echo "Failed to push changes"; exit 1; }
-          else
-            echo "No changes to commit"
+            git commit -m "feat(proxy): Update proxies list"
+            git push
           fi
