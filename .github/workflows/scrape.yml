@@ -27,7 +27,7 @@ jobs:
           repository: Ian-Lusule/Proxies-Scripts
           ref: main
           token: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
-          path: ./scripts # This creates a 'scripts' folder and places all files from Proxies-Scripts inside it
+          path: ./scripts #This creates a 'scripts' folder and places all files from Proxies-Scripts inside it
 
       - name: Set up Python
         uses: actions/setup-python@v5
