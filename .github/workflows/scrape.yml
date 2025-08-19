@@ -6,17 +6,28 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # Needed to allow pushing changes
+  contents: write # Needed to allow the workflow to commit and push changes
 
 jobs:
   update-proxies:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout public repository
         uses: actions/checkout@v4
         with:
-          persist-credentials: true  # Ensures the workflow can push changes
+          repository: Ian-Lusule/Proxies
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Checkout private script repository
+        uses: actions/checkout@v4
+        with:
+          repository: Ian-Lusule/Proxies-Scripts
+          ref: main
+          token: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
+          path: ./scripts # This is where the script will be checked out to
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -25,18 +36,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r .scripts/requirements.txt
+          pip install -r ./scripts/requirements.txt
+
       - name: Run script to update proxies
         run: |
-          python .scripts/update_proxies.py
+          python ./scripts/update_proxies.py
+
       - name: Configure Git
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+
       - name: Commit and push if changes
         run: |
           git add proxies
           if ! git diff --cached --quiet; then
             git commit -m "feat(proxy): Update proxies list"
             git push
+          else
+            echo "No changes to commit"
           fi
