@@ -27,7 +27,7 @@ jobs:
           repository: Ian-Lusule/Proxies-Scripts
           ref: main
           token: ${{ secrets.PRIVATE_REPO_ACCESS_TOKEN }}
-          path: ./scripts # The folder is now named "scripts"
+          path: ./private-scripts # The folder is now named "private-scripts" to avoid confusion
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -36,11 +36,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r ./scripts/requirements.txt # Corrected path
+          pip install -r ./private-scripts/.scripts/requirements.txt # Corrected path
           
       - name: Run script to update proxies
         run: |
-          python ./scripts/update_proxies.py # Corrected path
+          python ./private-scripts/.scripts/update_proxies.py # Corrected path
           
       - name: Configure Git
         run: |
